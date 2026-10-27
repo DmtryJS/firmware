@@ -2,7 +2,15 @@ config BR2_PACKAGE_WIFIBROADCAST_NG
 	bool "wifibroadcast-ng"
 	select BR2_PACKAGE_IW
 	select BR2_PACKAGE_MAVFWD
-	select BR2_PACKAGE_MSPOSD
+	# msposd.mk picks its flavour from OPENIPC_SOC_FAMILY and its else
+	# branch defaults to the Sigmastar star6e build, which links the
+	# sigmastar-osdrv vendor libraries. A SoC outside that chain (e.g.
+	# hi3516cv6xx, whose MPP is V5) therefore fails to link, taking the
+	# image down with it, so the select has to follow the same chain.
+	# Gated on the family string rather than on the osdrv package:
+	# msposd selects HISILICON_OSDRV_HI3536DV100 itself, which makes an
+	# osdrv-based condition a recursive dependency in kconfig.
+	select BR2_PACKAGE_MSPOSD if BR2_OPENIPC_SOC_FAMILY != "hi3516cv6xx"
 	# wfb_tun includes <event.h> and links -levent_core. Declared here so it
 	# builds against libevent-openipc, the library the image actually ships:
 	# with that package selected, the toolchain's own libevent headers are
